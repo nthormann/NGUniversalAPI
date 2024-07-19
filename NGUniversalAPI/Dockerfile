@@ -1,0 +1,48 @@
+## Use multi-arch base image that supports ARM
+#FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0 AS base
+#WORKDIR /app
+#EXPOSE 8080
+#EXPOSE 8081
+#
+#FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+#ARG BUILD_CONFIGURATION=Release
+#WORKDIR /src
+#COPY ["NGUniversalAPI/NGUniversalAPI.csproj", "NGUniversalAPI/"]
+#RUN dotnet restore "./NGUniversalAPI/NGUniversalAPI.csproj"
+#COPY . .
+#WORKDIR "/src/NGUniversalAPI"
+#RUN dotnet build "./NGUniversalAPI.csproj" -c $BUILD_CONFIGURATION -o /app/build
+#
+#FROM build AS publish
+#ARG BUILD_CONFIGURATION=Release
+#RUN dotnet publish "./NGUniversalAPI.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+#
+#FROM base AS final
+#WORKDIR /app
+#COPY --from=publish /app/publish .
+#ENTRYPOINT ["dotnet", "NGUniversalAPI.dll"]
+#
+
+# Use multi-arch base image that supports ARM
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS base
+WORKDIR /app
+EXPOSE 8080
+EXPOSE 8081
+
+FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
+ARG BUILD_CONFIGURATION=Release
+WORKDIR /src
+COPY ["NGUniversalAPI/NGUniversalAPI.csproj", "NGUniversalAPI/"]
+RUN dotnet restore "./NGUniversalAPI/NGUniversalAPI.csproj"
+COPY . .
+WORKDIR "/src/NGUniversalAPI"
+RUN dotnet build "./NGUniversalAPI.csproj" -c $BUILD_CONFIGURATION -o /app/build
+
+FROM build AS publish
+ARG BUILD_CONFIGURATION=Release
+RUN dotnet publish "./NGUniversalAPI.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "NGUniversalAPI.dll"]
